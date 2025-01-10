@@ -2,6 +2,8 @@
 
 ModelAI est un projet de trading algorithmique qui combine l'utilisation de modèles d'apprentissage automatique pour les prévisions financières et une interface utilisateur via Telegram pour le contrôle des opérations. Il permet, grâce à l'API Flask + le code MetaTrader 5 de faire de la prise de position de trade.
 
+Il y a aussi une interface web permettant d'afficher les prédictions du model graphiquement.
+
 # Aucunes maintenance, aucuns support d'installation pour ce projet.
 
 ---
