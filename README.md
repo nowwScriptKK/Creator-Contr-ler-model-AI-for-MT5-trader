@@ -1,6 +1,8 @@
 # ModelAI - Projet de Trading Algorithmique
 
-ModelAI est un projet de trading algorithmique qui combine l'utilisation de modèles d'apprentissage automatique pour les prévisions financières et une interface utilisateur via Telegram pour le contrôle des opérations. Ce projet a été développé à l'aide de **ChatGPT** et **Mistral**, avec une architecture modulaire pour l'intégration et l'amélioration continues.
+ModelAI est un projet de trading algorithmique qui combine l'utilisation de modèles d'apprentissage automatique pour les prévisions financières et une interface utilisateur via Telegram pour le contrôle des opérations. Il permet, grâce à l'API Flask + le code MetaTrader 5 de faire de la prise de position de trade.
+
+# Aucunes maintenance, aucuns support d'installation pour ce projet.
 
 ---
 
@@ -36,6 +38,7 @@ Prérequis
 
     Python 3.8+
     MetaTrader5
+    vs_BuildTools
     Bibliothèques Python nécessaires (listées dans requirements.txt).
 
 Étapes
@@ -45,9 +48,7 @@ Prérequis
 git clone <repository_url>
 cd ModelAI
 
-Installez les dépendances :
 
-pip install -r requirements.txt
 
 Configurez les paramètres nécessaires dans le répertoire config/.
 
