@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictions Graph</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; color: #333; transition: background-color 0.3s ease, color 0.3s ease; }
+        .container { width: 80%; margin: 20px auto; padding: 20px; background-color: #fff; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 12px; transition: box-shadow 0.3s ease, background-color 0.3s ease; }
+        h1, h2 { color: #444; font-weight: 300; transition: color 0.3s ease; }
+        .symbol-list { margin-bottom: 20px; }
+        .symbol-list a { margin-right: 10px; text-decoration: none; color: #007BFF; transition: color 0.3s ease; }
+        .symbol-list a:hover { color: #0056b3; text-decoration: underline; }
+        .graph-container { margin-bottom: 20px; border: 1px solid #ddd; border-radius: 12px; padding: 15px; background-color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); transition: box-shadow 0.3s ease, background-color 0.3s ease; }
+        .graph-container:hover { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+        .graph-container h2 { margin-top: 0; }
+        .error-message { color: #dc3545; margin-top: 20px; }
+        .options-container { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 12px; background-color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); transition: box-shadow 0.3s ease, background-color 0.3s ease; }
+        .options-container:hover { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+        .options-container label { display: block; margin-bottom: 10px; }
+        .options-container input[type="text"], .options-container input[type="checkbox"] { margin-right: 10px; }
+        .options-container button { margin-top: 10px; padding: 10px 20px; background-color: #007BFF; color: #fff; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; }
+        .options-container button:hover { background-color: #0056b3; }
+        .news-container { margin-bottom: 20px; border: 1px solid #ddd; border-radius: 12px; padding: 15px; background-color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); transition: box-shadow 0.3s ease, background-color 0.3s ease; overflow: hidden; }
+        .news-container:hover { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+        .news-grid { display: flex; gap: 10px; overflow-x: auto; scroll-behavior: smooth; }
+        .news-item { flex: 0 0 auto; border: 1px solid #ddd; border-radius: 8px; padding: 10px; background-color: #f9f9f9; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); transition: box-shadow 0.3s ease; min-width: 200px; }
+        .news-item:hover { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+        .add-trade-button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; }
+        .add-trade-button.buy { background-color: #28a745; color: #fff; }
+        .add-trade-button.buy:hover { background-color: #218838; }
+        .add-trade-button.sell { background-color: #dc3545; color: #fff; }
+        .add-trade-button.sell:hover { background-color: #c82333; }
+        .dark-mode-toggle { margin-top: 20px; padding: 10px 20px; background-color: #007BFF; color: #fff; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; }
+        .dark-mode-toggle:hover { background-color: #0056b3; }
+        .graph-layout-options { margin-top: 20px; }
+        .graph-layout-options label { margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <center>
+    <div class="container">
+        <h1>Predictions Graph</h1>
+        <div class="symbol-list">
+            <strong>Symboles disponibles:</strong>
+            <span id="symbol-list"></span>
+        </div>
+        <div class="options-container">
+            <label>
+                Volume:
+                <input type="text" id="volume" placeholder="Enter volume">
+            </label>
+            <button onclick="updateVolume()">Update Volume</button>
+            <button onclick="closeAllTrades()">Close All Trades & Block All</button>
+            <button onclick="unBlockAll()">Unblock All</button>
+            <button onclick="BlockAll()">Block All</button>
+            <button class="dark-mode-toggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+            <div class="graph-layout-options">
+                <label>
+                    <input type="radio" name="graph-layout" value="1" checked onclick="updateGraphLayout(1)"> 1 Graph
+                </label>
+                <label>
+                    <input type="radio" name="graph-layout" value="2" onclick="updateGraphLayout(2)"> 2 Graphs
+                </label>
+                <label>
+                    <input type="radio" name="graph-layout" value="3" onclick="updateGraphLayout(3)"> 3 Graphs
+                </label>
+            </div>
+        </div><br>
+        <div id="graphs-container" class="graphs-container"></div>
+        <div class="error-message" id="error-message"></div>
+    </div>
+    </center>
+    <script>
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        let predictionsData = {};
+
+        async function updateGraphs(selectedSymbol = null) {
+            try {
+                const response = await fetch('/predictions_data');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+                const text = await response.text();
+                console.log('Server response:', text); // Log the server response
+                let newPredictionsData;
+                try {
+                    newPredictionsData = JSON.parse(text);
+                } catch (error) {
+                    console.error('Invalid JSON response:', text); // Log the invalid JSON response
+                    throw new Error('Invalid JSON response');
+                }
+
+                // Clear previous symbols and error message
+                document.getElementById('symbol-list').innerHTML = '';
+                document.getElementById('error-message').innerText = '';
+
+                // Update symbol list
+                const symbols = Object.keys(newPredictionsData);
+                symbols.forEach(symbol => {
+                    document.getElementById('symbol-list').innerHTML += `<a href="/predictions.html?symboles=${symbol}">${symbol}</a>`;
+                });
+
+                // Update graphs for each symbol
+                if (selectedSymbol) {
+                    updateGraph(selectedSymbol, newPredictionsData[selectedSymbol]);
+                } else {
+                    symbols.forEach(symbol => updateGraph(symbol, newPredictionsData[symbol]));
+                }
+
+                // Store the predictions data for further updates
+                symbols.forEach(symbol => {
+                    if (!predictionsData[symbol]) predictionsData[symbol] = [];
+                    predictionsData[symbol] = predictionsData[symbol].concat(newPredictionsData[symbol]);
+                });
+
+            } catch (error) {
+                // Only display an error message if there's an actual fetch error
+                document.getElementById('error-message').innerText = error.message;
+            }
+        }
+
+        function BlockAll() {
+            fetch('http://127.0.0.1:5000/blockall', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to block all');
+                }
+                console.log('All symbols blocked successfully.');
+            })
+            .catch(error => console.error(error));
+        }
+
+        function unBlockAll() {
+            fetch('http://127.0.0.1:5000/unblock', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to unblock all');
+                }
+                console.log('All symbols unblocked successfully.');
+            })
+            .catch(error => console.error(error));
+        }
+
+        function updateGraph(symbol, new_predictions) {
+            if (!new_predictions || new_predictions.length === 0) return;
+
+            const labels = new_predictions.map((_, index) => index);
+            const dataPrices = new_predictions.map(pred => pred.buy_price);
+            const dataTP = new_predictions.map(pred => pred.TP);
+            const dataSL = new_predictions.map(pred => pred.SL);
+
+            // Prepare datasets with alternating colors
+            const buyData = [];
+            const sellData = [];
+
+            new_predictions.forEach(pred => {
+                if (pred.order_type === 1) { // Buy
+                    buyData.push(pred.buy_price);
+                    sellData.push(null); // No sell value
+                } else { // Sell
+                    sellData.push(pred.buy_price);
+                    buyData.push(null); // No buy value
+                }
+            });
+
+            // Calculate the principal order type
+            const buyCount = buyData.filter(Boolean).length;
+            const sellCount = sellData.filter(Boolean).length;
+            const principalOrderType = buyCount > sellCount ? 'Buy' : 'Sell';
+
+            // Calculate average prices
+            const averagePrice = dataPrices.reduce((sum, price) => sum + price, 0) / dataPrices.length;
+            const averageTP = dataTP.reduce((sum, tp) => sum + tp, 0) / dataTP.length;
+            const averageSL = dataSL.reduce((sum, sl) => sum + sl, 0) / dataSL.length;
+
+            // Create a div for the graph if it doesn't exist
+            let graphDiv = document.getElementById(`graph-container-${symbol}`);
+            if (!graphDiv) {
+                graphDiv = document.createElement('div');
+                graphDiv.id = `graph-container-${symbol}`;
+                graphDiv.className = 'graph-container';
+                graphDiv.innerHTML = `<h2>Predictions Graph for ${symbol}</h2>
+                                      <canvas id="graph-${symbol}" style="width:100%;height:400px;"></canvas>
+                                      <p>Buy: ${buyCount}, Sell: ${sellCount}, Type d'ordre principal: ${principalOrderType}, Prix moyen: ${averagePrice.toFixed(7)}, Moyenne du TP: ${averageTP.toFixed(7)}, Moyenne du SL: ${averageSL.toFixed(7)}</p>
+                                      <button class="add-trade-button ${principalOrderType.toLowerCase()}" onclick="addTrade('${symbol}', ${averageTP.toFixed(7)}, ${averageSL.toFixed(7)}, ${averagePrice.toFixed(7)}, ${principalOrderType === 'Buy' ? 1 : 0})">Add Trade (${principalOrderType.toLowerCase()})</button>`;
+                document.getElementById('graphs-container').appendChild(graphDiv);
+
+                const ctx = document.getElementById(`graph-${symbol}`).getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Buy Price',
+                                data: buyData,
+                                borderColor: '#28a745',
+                                backgroundColor: 'rgba(40, 167, 69, 0.1)', // Lighter gradient effect for Buy
+                                fill: true, // Fill under the line
+                                borderWidth: 1 // Smaller line width
+                            },
+                            {
+                                label: 'Sell Price',
+                                data: sellData,
+                                borderColor: '#dc3545',
+                                backgroundColor: 'rgba(220, 53, 69, 0.1)', // Lighter gradient effect for Sell
+                                fill: true, // Fill under the line
+                                borderWidth: 1 // Smaller line width
+                            },
+                            {
+                                label: 'TP',
+                                data: dataTP,
+                                borderColor: '#007bff',
+                                borderDash: [5, 5],
+                                fill: false,
+                                borderWidth: 1 // Smaller line width
+                            },
+                            {
+                                label: 'SL',
+                                data: dataSL,
+                                borderColor: '#ffc107',
+                                borderDash: [5, 5],
+                                fill: false,
+                                borderWidth: 1 // Smaller line width
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Prediction Index'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Price'
+                                }
+                            }
+                        },
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true
+                            }
+                        }
+                    }
+                });
+            } else {
+                // Update the existing chart
+                const chart = Chart.getChart(`graph-${symbol}`);
+                if (chart) {
+                    // Update the data
+                    chart.data.labels = labels; // Update labels
+                    chart.data.datasets[0].data = buyData; // Buy prices
+                    chart.data.datasets[1].data = sellData; // Sell prices
+                    chart.data.datasets[2].data = dataTP; // TP line
+                    chart.data.datasets[3].data = dataSL; // SL line
+                    chart.update(); // Redraw the chart
+                }
+                graphDiv.querySelector('p').innerHTML = `Buy: ${buyCount}, Sell: ${sellCount}, Type d'ordre principal: ${principalOrderType}, Prix moyen: ${averagePrice.toFixed(7)}, Moyenne du TP: ${averageTP.toFixed(7)}, Moyenne du SL: ${averageSL.toFixed(7)}`;
+                graphDiv.querySelector('button').className = `add-trade-button ${principalOrderType.toLowerCase()}`;
+                graphDiv.querySelector('button').innerHTML = `Add Trade (${principalOrderType.toLowerCase()})`;
+            }
+        }
+
+        function updateVolume() {
+            fetch('http://127.0.0.1:5000/set_volume', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ volume: document.getElementById('volume').value })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to update volume');
+                }
+                console.log('Volume updated successfully.');
+            })
+            .catch(error => console.error(error));
+        }
+
+        function closeAllTrades() {
+            fetch('/close_all_positions?delete=True')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to close trades.');
+                    }
+                    alert('All positions closed successfully.');
+                })
+                .catch(error => console.error('Failed to close trades.', error));
+        }
+
+        const selectedSymbol = getQueryParam('symboles');
+        updateGraphs(selectedSymbol || null);
+
+        setInterval(() => {
+            updateGraphs(selectedSymbol || null);
+        }, 3000);
+
+        function addTrade(symbol, TP, SL, buyPrice, orderType) {
+            const tradeData = {
+                'statut': 1,
+                'volume': 1,
+                'request_id': '73796edd-294a-4449-a131-11d390e826e0',
+                'predicted_close': 1.02101,
+                'TP': parseFloat(TP),
+                'SL': parseFloat(SL),
+                'buy_price': parseFloat(buyPrice),
+                'order_type': orderType,
+                'symboles': symbol
+            };
+            fetch('http://127.0.0.1:5000/resetTrade', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            fetch('http://127.0.0.1:5000/addTrade', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(tradeData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to add trade');
+                }
+                console.log('Trade added successfully.');
+                // Open the URL in a new tab
+
+            })
+            .catch(error => console.error(error));
+        }
+
+        // Function to toggle dark mode
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            document.querySelectorAll('.container, .graph-container, .options-container, .news-container, .news-item, h1, h2').forEach(element => {
+                element.classList.toggle('dark-mode');
+            });
+        }
+
+        // Function to update graph layout
+        function updateGraphLayout(numGraphs) {
+            const graphsContainer = document.getElementById('graphs-container');
+            graphsContainer.style.display = 'grid';
+            graphsContainer.style.gridTemplateColumns = `repeat(${numGraphs}, 1fr)`;
+            graphsContainer.style.gap = '20px';
+        }
+
+        // Make graphs draggable
+        new Sortable(document.getElementById('graphs-container'), {
+            animation: 150,
+            ghostClass: 'sortable-ghost'
+        });
+    </script>
+</body>
+</html>

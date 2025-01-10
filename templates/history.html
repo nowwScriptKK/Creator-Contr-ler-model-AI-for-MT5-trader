@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; color: #333; }
+        .container { width: 80%; margin: 20px auto; padding: 20px; background-color: #fff; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 12px; transition: box-shadow 0.3s ease; }
+        .container:hover { box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); }
+        h1, h2 { color: #444; font-weight: 300; }
+        .symbol-list { margin-bottom: 20px; }
+        .symbol-list a { margin-right: 10px; text-decoration: none; color: #007BFF; transition: color 0.3s ease; }
+        .symbol-list a:hover { color: #0056b3; text-decoration: underline; }
+        .graph-container { margin-bottom: 20px; border: 1px solid #ddd; border-radius: 12px; padding: 15px; background-color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); transition: box-shadow 0.3s ease; }
+        .graph-container:hover { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+        .graph-container h2 { margin-top: 0; }
+        .error-message { color: #dc3545; margin-top: 20px; }
+        .options-container { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 12px; background-color: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); transition: box-shadow 0.3s ease; }
+        .options-container:hover { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+        .options-container label { display: block; margin-bottom: 10px; }
+        .options-container input[type="text"], .options-container input[type="checkbox"] { margin-right: 10px; }
+        .options-container button { margin-top: 10px; padding: 10px 20px; background-color: #007BFF; color: #fff; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; }
+        .options-container button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    {% include 'header.html' %}
+    <div class="container">
+        <h1>History</h1>
+        <ul class="symbol-list">
+            {% for file in files %}
+                <li>
+                    <a href="{{ url_for('serve_history_file', filename=file.name) }}">{{ file.name }}</a>
+                    <span>{{ file.date }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
