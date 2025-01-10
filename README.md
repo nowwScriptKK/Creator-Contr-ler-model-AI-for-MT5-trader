@@ -116,10 +116,6 @@ Exemple de prédictions LSTM
 Les données d'entrée sont pré-traitées avec des indicateurs techniques et des analyses de sentiments pour maximiser la précision.
 🛡️ Contribution
 
-Les contributions sont les bienvenues ! Veuillez créer une issue ou soumettre une pull request.
-📄 Licence
+Les contributions sont les bienvenues, mais bon courage ! 
+Veuillez créer une issue ou soumettre une pull request.
 
-Ce projet est sous licence MIT.
-
-
-Ce fichier README est conçu pour être clair et accueillant, tout en offrant des détails précis sur l'installation, l'utilisation et l'arborescence des fichiers. Si vous avez d'autres exigences spécifiques, n'hésitez pas à me les indiquer !
