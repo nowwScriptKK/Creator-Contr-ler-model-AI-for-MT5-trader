@@ -31,7 +31,7 @@ ModelAI/
 ├── outils_historique/   # Historique et outils d'analyse
 ├── trade_info/          # Gestion des informations de trading
 └── templates/
-    ├── historique/      # Modèles d'historique
+    ├── historique/      # Modèles d'historique```
 
 🛠️ Installation
 Prérequis
@@ -44,10 +44,10 @@ Prérequis
 Étapes
 
     Clonez le projet :
-
+```
 git clone <repository_url>
 cd ModelAI
-
+```
 
 
 Configurez les paramètres nécessaires dans le répertoire config/.
