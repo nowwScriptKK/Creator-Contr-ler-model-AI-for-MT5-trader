@@ -11,7 +11,7 @@ Il y a aussi une interface web permettant d'afficher les prédictions du model g
 ## 🚀 Fonctionnalités principales
 
 - **Prédictions de marché** basées sur des modèles LSTM et XGBoost.
-- **Analyse des sentiments** des actualités textuelles pour intégrer des signaux externes dans les décisions.
+- **Analyse des sentiments** des actualités textuelles pour intégrer des signaux externes dans les décisions.(API de la FED, il est possible de rajouté ChatGPT API ou d'utiliser le model de Mistral en local pour avoir une analyse textuel)
 - **Gestion du trading en temps réel** via une interface Telegram.
 - **Arborescence organisée** pour faciliter la maintenance et l'amélioration.
 
